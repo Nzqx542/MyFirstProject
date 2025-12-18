@@ -1,7 +1,6 @@
 import streamlit as st
 import random
 import time
-from streamlit_shortcuts import add_shortcuts
 
 st.set_page_config(page_title="2025 Snake", layout="centered")
 
