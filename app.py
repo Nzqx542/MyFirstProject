@@ -1,14 +1,15 @@
 import streamlit as st
 import random
 import time
+from streamlit_shortcuts import add_shortcuts
 
 # --- INITIAL SETUP ---
-st.set_page_config(page_title="Streamlit Snake", layout="centered")
-st.title("🐍 Streamlit Snake Game")
+st.set_page_config(page_title="Keyboard Snake", layout="centered")
+st.title("🐍 Keyboard-Controlled Snake")
 
 # Game constants
 GRID_SIZE = 15
-DELAY = 0.2  # Speed of the game in seconds
+DELAY = 0.15  # Slightly faster for better keyboard response
 
 # Initialize Session State
 if 'snake' not in st.session_state:
@@ -18,22 +19,21 @@ if 'snake' not in st.session_state:
     st.session_state.score = 0
     st.session_state.game_over = False
 
-def reset_game():
-    st.session_state.snake = [(5, 5), (5, 4), (5, 3)]
-    st.session_state.direction = 'RIGHT'
-    st.session_state.score = 0
-    st.session_state.game_over = False
+# Define movement functions for shortcuts
+def set_up(): st.session_state.direction = 'UP'
+def set_down(): st.session_state.direction = 'DOWN'
+def set_left(): st.session_state.direction = 'LEFT'
+def set_right(): st.session_state.direction = 'RIGHT'
 
-# --- INPUT HANDLING ---
-col1, col2, col3 = st.columns([1, 1, 1])
-with col2:
-    if st.button("⬆️"): st.session_state.direction = 'UP'
-with col1:
-    if st.button("⬅️"): st.session_state.direction = 'LEFT'
-with col3:
-    if st.button("➡️"): st.session_state.direction = 'RIGHT'
-with col2:
-    if st.button("⬇️"): st.session_state.direction = 'DOWN'
+# --- KEYBOARD SHORTCUT BINDING ---
+# These bind physical keys to the functions defined above
+add_shortcuts({
+    'ArrowUp': set_up,
+    'ArrowDown': set_down,
+    'ArrowLeft': set_left,
+    'ArrowRight': set_right,
+    'r': lambda: st.session_state.clear() # Shortcut to restart
+})
 
 # --- GAME LOGIC ---
 if not st.session_state.game_over:
@@ -53,7 +53,6 @@ if not st.session_state.game_over:
         st.session_state.game_over = True
     else:
         st.session_state.snake.insert(0, new_head)
-        # Food Check
         if new_head == st.session_state.food:
             st.session_state.score += 10
             st.session_state.food = (random.randint(0, GRID_SIZE-1), random.randint(0, GRID_SIZE-1))
@@ -64,21 +63,19 @@ if not st.session_state.game_over:
 grid = [["⬜" for _ in range(GRID_SIZE)] for _ in range(GRID_SIZE)]
 fx, fy = st.session_state.food
 grid[fx][fy] = "🍎"
-
 for x, y in st.session_state.snake:
     grid[x][y] = "🟩"
 
-# Visual output
 game_display = "\n".join(["".join(row) for row in grid])
 st.text(game_display)
 st.write(f"### Score: {st.session_state.score}")
+st.caption("Use Arrow Keys to move • Press 'R' to restart")
 
 if st.session_state.game_over:
     st.error("GAME OVER!")
     if st.button("Restart"):
-        reset_game()
+        st.session_state.clear()
         st.rerun()
 else:
-    # Auto-refresh mechanism
     time.sleep(DELAY)
     st.rerun()
